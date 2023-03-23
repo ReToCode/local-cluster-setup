@@ -1,7 +1,6 @@
 # Set up a local docker env on macOS with service type LoadBalancer working
 
 ## Docker environment
-
 ### with Colima
 ```bash
 # start VM
@@ -28,7 +27,8 @@ export DOCKER_HOST='unix:///Users/rlehmann/.local/share/containers/podman/machin
 ./podman/metal.sh
 
 # run a socat container in kind-network to bridge traffic from macOS
-docker run -d --restart always --name kind-lb-proxy --network kind -p 80:80 alpine/socat -dd TCP-LISTEN:80,fork TCP:10.89.0.200:80
+docker run -d --restart always --name kind-lb-proxy --network kind -p 80:80 alpine/socat -dd TCP-LISTEN:80,fork TCP:10.89.0.200:80 
+docker run -d --restart always --name kind-lb-proxy-https --network kind -p 443:443 alpine/socat -dd TCP-LISTEN:443,fork TCP:10.89.0.200:443
 
 # add the service ip as an alias to lo0
 sudo ifconfig lo0 alias 10.89.0.200
