@@ -1,33 +1,30 @@
 # Set up a local docker env on macOS with service type LoadBalancer working
 
-## Podman
+## Docker environment
 
-### Prerequisites
-
-Create a podman VM
+### with Colima
 
 ```bash
-podman machine init --cpus 4 --memory=16000 --rootful
-export DOCKER_HOST='unix:///Users/rlehmann/.local/share/containers/podman/machine/podman-machine-default/podman.sock'
+# start VM
+./colima/start.sh
+
+# ssh into colima and allow traffic on iptables
+colima ssh
+./colima/iptables.sh
+
+# back on macOS, add a route to colima bridge
+./mac_route.sh
+
+# install metal-lb
+./colima/metal.sh
 ```
 
-Update ulimits in podman VM with `podman machine ssh`
+## Kind
 
 ```bash
-sysctl -w fs.inotify.max_user_watches=100000
-sysctl -w fs.inotify.max_user_instances=100000
-```
+./kind/create_cluster.sh
 
-
-### Start environment
-
-```bash
-./create_cluster.sh
-```
-
-You can now deploy something that exposes a service with type `LoadBalancer` and reach it from macOS directly:
-
-```bash
+# then you can deploy something that exposes a service with type `LoadBalancer` and reach it from macOS directly:
 k get svc -n kourier-system
 NAME               TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)                      AGE
 kourier            LoadBalancer   10.96.23.149    10.89.0.200   80:30067/TCP,443:30550/TCP   25m
