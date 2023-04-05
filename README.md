@@ -11,13 +11,18 @@ podman machine init --cpus 4 --memory=16000 --rootful
 export DOCKER_HOST='unix:///Users/rlehmann/.local/share/containers/podman/machine/podman-machine-default/podman.sock'
 ```
 
-Update ulimits in podman VM with `podman machine ssh`
+Update ulimits in podman VM with
 
 ```bash
-sysctl -w fs.inotify.max_user_watches=100000
-sysctl -w fs.inotify.max_user_instances=100000
+podman machine ssh --username root -- sysctl -w fs.inotify.max_user_instances=100000
+podman machine ssh --username root -- sysctl -w fs.inotify.max_user_watches=100000
 ```
 
+If the time in the podman VM is off (happens when the host-os is in in hibernation), update it with
+```bash
+podman machine ssh --username root -- sed -i 's/^makestep\ .*$/makestep\ 1\ -1/' /etc/chrony.conf
+podman machine ssh --username root -- systemctl restart chronyd
+```
 
 ### Start environment
 

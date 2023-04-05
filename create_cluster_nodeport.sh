@@ -8,6 +8,11 @@ apiVersion: kind.x-k8s.io/v1alpha4
 nodes:
 - role: control-plane
   image: kindest/node:v1.26.0@sha256:691e24bd2417609db7e589e1a479b902d2e209892a10ce375fab60a8407c7352
+  extraPortMappings:
+  - containerPort: 30080
+    hostPort: 30080
+  - containerPort: 30443
+    hostPort: 30443
 - role: worker
   image: kindest/node:v1.26.0@sha256:691e24bd2417609db7e589e1a479b902d2e209892a10ce375fab60a8407c7352
   extraPortMappings:
