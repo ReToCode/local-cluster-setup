@@ -59,3 +59,8 @@ content-length: 0
 <
 * Connection #0 to host 10.89.0.200 left intact
 ```
+
+### Install Knative Serving + Kourier
+```bash
+./install_serving_kourier.sh
+```
