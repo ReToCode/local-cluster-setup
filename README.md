@@ -7,7 +7,7 @@
 Create a podman VM
 
 ```bash
-podman machine init --cpus 4 --memory=16000 --rootful
+podman machine init --cpus 8 --memory=16000 --rootful
 export DOCKER_HOST='unix:///Users/rlehmann/.local/share/containers/podman/machine/podman-machine-default/podman.sock'
 ```
 
