@@ -34,3 +34,4 @@ kubectl patch configmap/config-network \
   --type merge \
   --patch '{"data":{"autocreate-cluster-domain-claims":"true"}}'
 
+echo "# All done! Serving and Kourier ready to use!"
