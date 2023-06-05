@@ -44,6 +44,12 @@ spec:
     namespace: knative-eventing
 EOF
 
+echo "# Patching default kafka broker config"
+kubectl patch configmap/kafka-broker-config \
+  --namespace knative-eventing \
+  --type merge \
+  --patch '{"data":{"default.topic.replication.factor":"1"}}'
+
 echo "# Setting the Strimzi Kafka as default"
 cat <<-EOF | kubectl apply -f -
 apiVersion: v1
