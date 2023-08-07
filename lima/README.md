@@ -8,7 +8,7 @@ This setup allows building intel images without `qemu-user` or `qemu-static` dir
 brew install lima podman
 
 # Starting a ARM VM with Rosetta 2 support
-limactl start --name=default ./lima/podman-vz.yaml
+limactl start --name=default ./podman-vz.yaml
 
 # Configure podman on MacOS to use that VM
 podman system connection add lima-default "unix:///Users/rlehmann/.lima/default/sock/podman.sock"
