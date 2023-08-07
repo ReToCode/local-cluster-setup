@@ -1,0 +1,158 @@
+vmType: "vz"
+mountType: "virtiofs"
+
+rosetta:
+  enabled: true
+  binfmt: true
+
+networks:
+  - vzNAT: true
+
+images:
+  - location: "https://github.com/lima-vm/alpine-lima/releases/download/v0.2.30/alpine-lima-std-3.18.0-x86_64.iso"
+    arch: "x86_64"
+    digest: "sha512:c5f00210ecc355c57dd2f44b23c3976d3af20f831a618d920e64fc0a5b1f99fa41640c06efe50bbc33228bc2d39e9ba435a6f2c76c5c06315cb8f5ada9584c91"
+  - location: "https://github.com/lima-vm/alpine-lima/releases/download/v0.2.30/alpine-lima-std-3.18.0-aarch64.iso"
+    arch: "aarch64"
+    digest: "sha512:48ca7c15ae66fc68d86b5e25a769c273e253aaba4fd9a70a4e7f21fdc420b53829ba9fe17b730922938941639c3ed93bf5a560b6ce4252f9df3200d9f8f73280"
+
+containerd:
+  system: false
+  user: false
+
+provision:
+  - mode: dependency
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+
+      apk add podman
+
+  - mode: dependency
+    script: |
+      #!/bin/bash
+      #
+      # Update qemu for stability
+      #
+      if [ "$LIMA_CIDATA_ROSETTA_BINFMT" = "true" ]; then
+          exit 0
+      fi
+
+      # qemu-aarch64 on x86_64 and vice versa
+      # Ref: https://github.com/lima-vm/alpine-lima/blob/e7967f6a7f153cd8eff7e88f0edad693cb53cfde/genapkovl-lima.sh
+      OTHERARCH=aarch64
+      if [ "$(uname -m)" == "${OTHERARCH}" ]; then
+          OTHERARCH=x86_64
+      fi
+      apk add qemu-${OTHERARCH}
+
+      # To apply updated qemu
+      rc-service qemu-binfmt restart --ifstarted
+
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+
+      # For stability
+      mkdir -p /etc/containers/containers.conf.d/
+      if [[ -e /etc/containers/containers.conf.d/local.conf ]] ; then
+        exit 0
+      fi
+
+      cat <<-EOF > /etc/containers/containers.conf.d/local.conf
+      [engine]
+      database_backend = "sqlite"
+      EOF
+
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+
+      if ! egrep -q '^podman_uri' /etc/conf.d/podman ; then
+        cat <<-EOF > /etc/conf.d/podman
+      podman_uri="unix:///run/user/$LIMA_CIDATA_UID/podman/podman.sock"
+      podman_user="$LIMA_CIDATA_USER"
+      EOF
+      fi
+
+      mkdir -p "/run/user/$LIMA_CIDATA_UID/podman"
+      chown -R "$LIMA_CIDATA_USER:$LIMA_CIDATA_USER" "/run/user/$LIMA_CIDATA_UID"
+
+      if [[ ! -e /etc/subuid ]] || ! egrep -q "^$LIMA_CIDATA_USER:" /etc/subuid ; then
+        cat <<-EOF > /etc/subuid
+      $LIMA_CIDATA_USER:100000:65536
+      EOF
+      fi
+
+      if [[ ! -e /etc/subgid ]] || ! egrep -q "^$LIMA_CIDATA_USER:" /etc/subgid ; then
+        cat <<-EOF > /etc/subgid
+      $LIMA_CIDATA_USER:100000:65536
+      EOF
+      fi
+
+      if [[ ! -e /etc/sysctl.d/local.conf ]] ; then
+        cat <<-EOF > /etc/sysctl.d/local.conf
+      net.ipv4.ip_unprivileged_port_start=80
+      EOF
+      fi
+
+      sysctl -p /etc/sysctl.d/local.conf
+
+      if [[ ! -e /etc/security/limits.d/local.conf ]] ; then
+        cat <<-EOF > /etc/security/limits.d/local.conf
+      *               soft    nofile          unlimited
+      *               hard    nofile          unlimited
+      *               soft    stack           unlimited
+      *               hard    stack           unlimited
+      *               soft    memlock         unlimited
+      *               hard    memlock         unlimited
+      EOF
+      fi
+
+      # see: https://github.com/containers/buildah/issues/3726
+      mount --make-rshared /
+
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+
+      if [[ -e /sys/fs/cgroup/cgroup.controllers ]] ; then
+        exit 0
+      fi
+
+      # use cgroup v2
+      mkdir -p /etc/rc.conf.d
+      echo 'rc_cgroup_mode="unified"' > /etc/rc.conf.d/cgroup.conf
+      rc-service cgroups restart --ifstarted
+
+  - mode: system
+    script: |
+      #!/bin/bash
+      set -eux -o pipefail
+
+      rc-service podman start
+
+probes:
+  - script: |
+      #!/bin/bash
+      set -eux -o pipefail
+      if ! timeout 30s bash -c "until command -v podman >/dev/null 2>&1; do sleep 3; done"; then
+        echo >&2 "podman is not installed yet"
+        exit 1
+      fi
+    hint: See "/var/log/cloud-init-output.log" in the guest
+env:
+  TMPDIR: /tmp
+portForwards:
+  - guestSocket: "/run/user/{{.UID}}/podman/podman.sock"
+    hostSocket: "{{.Dir}}/sock/podman.sock"
+message: |
+  To run `podman` on the host (assumes podman-remote is installed), run the following commands:
+  ------
+  podman system connection add lima-{{.Name}} "unix://{{.Dir}}/sock/podman.sock"
+  podman system connection default lima-{{.Name}}
+  podman{{if eq .HostOS "linux"}} --remote{{end}} run quay.io/podman/hello
+  ------
