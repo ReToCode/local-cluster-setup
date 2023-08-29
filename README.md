@@ -24,9 +24,10 @@ podman machine ssh --username root -- sed -i 's/^makestep\ .*$/makestep\ 1\ -1/'
 podman machine ssh --username root -- systemctl restart chronyd
 ```
 
-### Start environment
+### Create a kind environment with MetalLB
 
 ```bash
+# Create a kind cluster
 ./create_cluster.sh
 ```
 
@@ -60,7 +61,19 @@ content-length: 0
 * Connection #0 to host 10.89.0.200 left intact
 ```
 
-### Install Knative Serving + Kourier
+### Install Knative Serving
 ```bash
+# Option with kourier
 ./install_serving_kourier.sh
+
+# Install Istio + net-istio
+./install_istio_and_net_istio.sh
 ```
+
+
+### Install Knative Eventing
+```bash
+./install_eventing_kafka.sh
+```
+
+
