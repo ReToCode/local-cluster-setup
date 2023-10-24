@@ -1,5 +1,18 @@
 # Set up a local docker env on macOS with service type LoadBalancer working
 
+## Minikube as K8s and docker environment
+
+```bash
+brew install minikube
+
+brew install socket_vmnet
+brew tap homebrew/services
+sudo brew services start socket_vmnet
+
+minikube start --driver qemu --network socket_vmnet --cpus 8 --memory 16g
+eval $(minikube docker-env)
+```
+
 ## Podman
 
 ### Prerequisites
