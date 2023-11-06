@@ -12,3 +12,4 @@ expect "Enter Load Balancer End IP:" { send "${MINIKUBE_IP%.*}.120\\r" }
 expect eof
 _EOF_
 
+minikube addons enable registry
