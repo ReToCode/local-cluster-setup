@@ -10,6 +10,18 @@ eval $(minikube docker-env)
 export KO_DOCKER_REPO=ko.local
 ```
 
+Use Core Tunnel to permanently forward 80 -> 8080 & 443 -> 8443 to MacOS
+
+![coretunnel](./img/coretunnel.png)
+
+Use nginx to remap ports 8080 -> 80 & 8443 -> 443 to avoid adding ports to URLs:
+
+```bash
+brew install nginx
+sudo cp nginx/nginx.conf /opt/homebrew/etc/nginx/nginx.conf
+sudo brew services start nginx
+```
+
 ## Podman
 
 ### Prerequisites

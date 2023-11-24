@@ -17,8 +17,7 @@ minikube addons enable registry
 echo "Adding ip alias"
 sudo ifconfig lo0 alias 172.17.0.100/24 up
 
-echo "Starting ssh tunnel"
-sudo ssh -i $(minikube ssh-key) -p 58196 docker@127.0.0.1 -N -L 172.17.0.100:80:172.17.0.100:80 -L 172.17.0.100:443:172.17.0.100:443 &
+#echo "Starting ssh tunnel"
+#sudo ssh -i $(minikube ssh-key) -p 58196 docker@127.0.0.1 -N -L 172.17.0.100:80:172.17.0.100:80 -L 172.17.0.100:443:172.17.0.100:443 &
 
-echo "Cluster is ready to use"
-
+echo "Cluster is ready to use, start core tunnel for ssh access"
