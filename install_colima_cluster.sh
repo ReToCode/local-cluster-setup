@@ -8,8 +8,8 @@ kubectl wait --namespace metallb-system \
                 --selector=app=metallb \
                 --timeout=90s
 
-addr=$(colima list -j | jq -r .address)
-echo "colima has IP $addr"
+# Get address from:
+# docker network inspect -f '{{.IPAM.Config}}'  bridge
 
 cat <<EOF | kubectl apply -f -
 apiVersion: metallb.io/v1beta1
@@ -19,7 +19,7 @@ metadata:
   namespace: metallb-system
 spec:
   addresses:
-  - $addr-$addr
+  - 172.17.0.100-172.17.0.150
 ---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
@@ -28,4 +28,12 @@ metadata:
   namespace: metallb-system
 EOF
 
-echo "All done, ready to use"
+echo "Adding ip alias"
+sudo ifconfig lo0 alias 172.17.0.100/24 up
+
+#echo "Starting ssh tunnel"
+#colima ssh-config
+#sudo ssh -i /Users/rlehmann/.colima/_lima/_config/user -p 56725 rlehmann@127.0.0.1 -N -L 172.17.0.100:80:172.17.0.100:80 -L 172.17.0.100:443:172.17.0.100:443 &
+
+echo "Cluster is ready to use, start core tunnel for ssh access"
+
