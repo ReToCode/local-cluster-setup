@@ -8,6 +8,9 @@ Colima with the VZ driver is the best solution for now, it has the least CPU/mem
 colima start --cpu 4 --memory 16 --disk 100 --kubernetes --vm-type=vz
 
 ./install_colima_cluster.sh
+
+# get ssh port for forwarding from:
+colima ssh-config
 ```
 
 You can also use Coretunnel to open a permanent SSH tunnel to forward ports 80/443 to the local IP.
