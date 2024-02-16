@@ -1,5 +1,18 @@
 # Set up a local docker env on macOS with service type LoadBalancer working
 
+## Colima
+
+Colima with the VZ driver is the best solution for now, it has the least CPU/memory overhead and runs super stable. 
+
+```bash
+colima start --cpu 4 --memory 16 --disk 100 --kubernetes --vm-type=vz
+
+./install_colima_cluster.sh
+```
+
+You can also use Coretunnel to open a permanent SSH tunnel to forward ports 80/443 to the local IP.
+
+
 ## Minikube as K8s and docker environment
 
 ```bash

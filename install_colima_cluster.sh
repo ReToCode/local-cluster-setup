@@ -31,9 +31,5 @@ EOF
 echo "Adding ip alias"
 sudo ifconfig lo0 alias 172.17.0.100/24 up
 
-#echo "Starting ssh tunnel"
-#colima ssh-config
-#sudo ssh -i /Users/rlehmann/.colima/_lima/_config/user -p 56725 rlehmann@127.0.0.1 -N -L 172.17.0.100:80:172.17.0.100:80 -L 172.17.0.100:443:172.17.0.100:443 &
-
 echo "Cluster is ready to use, start core tunnel for ssh access"
 
