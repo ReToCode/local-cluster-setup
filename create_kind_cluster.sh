@@ -43,13 +43,7 @@ metadata:
   namespace: metallb-system
 EOF
 
-echo "# Starting socat proxies"
-
-# run a socat container in kind-network to bridge traffic from macOS
-podman run -d --restart always --name kind-lb-proxy --network kind -p 80:80 alpine/socat -dd TCP-LISTEN:80,fork TCP:10.89.0.200:80 
-podman run -d --restart always --name kind-lb-proxy-https --network kind -p 443:443 alpine/socat -dd TCP-LISTEN:443,fork TCP:10.89.0.200:443
-
 echo "# Setting ip as lo0 alias"
+sudo ifconfig lo0 alias 10.89.0.200/24 up
 
-# add the service ip as an alias to lo0
-sudo ifconfig lo0 alias 10.89.0.200
+echo "# Cluster is ready to use, start core tunnel for ssh access"
